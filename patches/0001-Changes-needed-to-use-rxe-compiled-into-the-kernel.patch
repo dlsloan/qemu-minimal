@@ -1,0 +1,41 @@
+From 24a61a2b0d3cb6f3492953ae81d09a84c33662ce Mon Sep 17 00:00:00 2001
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Wed, 10 Feb 2016 10:37:50 -0700
+Subject: [PATCH] Changes needed to use rxe compiled into the kernel.
+
+If you don't use rxe as a module there's a symbol conflict with zgid and
+the init depends on ipv6 which ends up initializing after it.
+
+We make zgid an extern and bump the rxe_init to be a latecall init.
+---
+ drivers/infiniband/hw/rxe/rxe.c       | 2 +-
+ drivers/infiniband/hw/rxe/rxe_verbs.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/rxe/rxe.c b/drivers/infiniband/hw/rxe/rxe.c
+index bebcf65..8895df6 100644
+--- a/drivers/infiniband/hw/rxe/rxe.c
++++ b/drivers/infiniband/hw/rxe/rxe.c
+@@ -442,5 +442,5 @@ static void __exit rxe_module_exit(void)
+ 	pr_info("rxe: unloaded\n");
+ }
+ 
+-module_init(rxe_module_init);
++late_initcall(rxe_module_init);
+ module_exit(rxe_module_exit);
+diff --git a/drivers/infiniband/hw/rxe/rxe_verbs.c b/drivers/infiniband/hw/rxe/rxe_verbs.c
+index b00039a..d45a11b 100644
+--- a/drivers/infiniband/hw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/hw/rxe/rxe_verbs.c
+@@ -63,7 +63,7 @@ err1:
+ 	return -EINVAL;
+ }
+ 
+-union ib_gid zgid;
++extern union ib_gid zgid;
+ 
+ static int rxe_query_gid(struct ib_device *device,
+ 			 u8 port_num, int index, union ib_gid *gid)
+-- 
+2.1.4
+
