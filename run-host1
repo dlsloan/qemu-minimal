@@ -1,0 +1,82 @@
+#!/bin/bash
+
+USAGE="Usage: `basename $0` [-i IMAGE_FILE] [-s SSH_PORT] [-q QEMU_EXE] BZIMAGE [QEMU_ARG, ...]"
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+IMGDIR=${DIR}/images
+QEMU=qemu-system-x86_64
+IMAGE=${IMAGE:-host1.qcow2}
+BASE_IMAGE=${BASE_IMAGE:-jessie-clean.qcow2}
+SSH_PORT=${SSH_PORT:-3234}
+GDB_PORT=${GDB_PORT:-1234}
+NETSOCKET_PORT=11321
+NETSOCKET_DIR=${NETSOCKET_DIR:-listen}
+ETH1_MAC=${ETH1_MAC:-52:54:00:12:34:57}
+QUIET=quiet
+KVM=-enable-kvm
+MEM=2048
+CORES=1
+
+while getopts hq:i:m:s:c:kv OPT; do
+    case "$OPT" in
+        h)
+            echo $USAGE
+            exit 0
+            ;;
+        q)
+            QEMU=$OPTARG
+            ;;
+        i)
+            IMAGE=$OPTARG
+            ;;
+        m)
+            MEM=$OPTARG
+            ;;
+        s)
+            SSH_PORT=$OPTARG
+            ;;
+        c)
+            CORES=$OPTARG
+            ;;
+        k)
+            KVM=
+            ;;
+        v)
+            QUIET=
+            ;;
+       \?)
+           # getopts issues an error message
+           echo $USAGE >&2
+           exit 1
+           ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+KERNEL=$1
+shift
+
+  # If the desired image does not exist then create it from the
+  # jessie-clean.qcow2 image.
+
+if [ ! -f $IMAGE ] && [[ $IMAGE != */* ]]; then
+    IMAGE=$IMGDIR/$IMAGE
+    if [ ! -f $IMAGE ]; then
+        qemu-img create -f qcow2 -b $IMGDIR/$BASE_IMAGE $IMAGE
+    fi
+fi
+
+
+${QEMU} ${KVM} -gdb tcp::${GDB_PORT} -m ${MEM} ${IMAGE} -smp ${CORES},cores=${CORES} \
+   -virtfs local,id=home,path=/home/,security_model=mapped,mount_tag=home \
+   -redir tcp:${SSH_PORT}::22 \
+   -netdev user,id=hostnet \
+   -device rtl8139,netdev=hostnet \
+   -netdev socket,id=rdma,${NETSOCKET_DIR}=:${NETSOCKET_PORT} \
+   -device rtl8139,netdev=rdma,mac=${ETH1_MAC} \
+   -nographic \
+   -serial mon:stdio \
+   -kernel ${KERNEL} \
+   -append "root=/dev/sda2 rootfstype=ext4 console=ttyS0,38400n8 ${QUIET}" \
+   "$@"

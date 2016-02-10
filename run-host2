@@ -1,0 +1,10 @@
+#!/bin/bash
+
+BASE_IMAGE=host2-base.qcow2
+IMAGE=host2.qcow2
+SSH_PORT=3235
+GDB_PORT=1235
+NETSOCKET_DIR=${NETSOCKET_DIR:-connect}
+ETH1_MAC=${ETH1_MAC:-52:54:00:12:33:11}
+
+source ./run-host1 "$@"
