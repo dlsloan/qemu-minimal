@@ -9,7 +9,8 @@ testing RDMA using SoftRoCE but can be used for many other things.
 
 There is a minimalist kernel config in this repo as well that can be used as
 a starting point for building a suitable kernel. It should be used with a
-[SoftRoCE kernel](https://github.com/SoftRoCE/rxe-dev).
+[SoftRoCE kernel](https://github.com/SoftRoCE/rxe-dev). A sample bzImage,
+compiled from this kernel is included in this repo.
 
 To run qemu using this image from the command should be:
 

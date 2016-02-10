@@ -57,6 +57,8 @@ shift $((OPTIND-1))
 KERNEL=$1
 shift
 
+KERNEL=${KERNEL:-./bzImage}
+
   # If the desired image does not exist then create it from the
   # jessie-clean.qcow2 image.
 
