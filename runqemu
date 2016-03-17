@@ -4,11 +4,11 @@ USAGE="Usage: `basename $0` [-i IMAGE_FILE] [-s SSH_PORT] [-q QEMU_EXE] BZIMAGE 
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 IMGDIR=${DIR}/images
-QEMU=qemu-system-x86_64
+QEMU=qemu-system-ppc64le
 IMAGE=jessie.qcow2
 SSH_PORT=3234
 QUIET=quiet
-KVM=-enable-kvm
+#KVM=-enable-kvm
 MEM=2048
 CORES=1
 PMEM=""
@@ -71,9 +71,9 @@ fi
 
 ${QEMU} ${KVM} -s -m ${MEM} $IMAGE -smp ${CORES},cores=${CORES} \
    -drive file=${IMGDIR}/nvme.qcow2,if=none,id=nvme1,snapshot=on \
-   -device nvme,drive=nvme1,serial=nvme1,namespaces=1,cmbsz=0,cmbloc=0 \
+   -device nvme,drive=nvme1,serial=nvme1 \
    -drive file=${IMGDIR}/nvme2.qcow2,if=none,id=nvme2,snapshot=on \
-   -device nvme,drive=nvme2,serial=nvme2,namespaces=1,cmbsz=8388608,cmbloc=2 \
+   -device nvme,drive=nvme2,serial=nvme2 \
    -virtfs local,id=home,path=/home/,security_model=mapped,mount_tag=home \
    -redir tcp:$SSH_PORT::22 \
    -nographic \
