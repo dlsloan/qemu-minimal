@@ -5,8 +5,8 @@ set -e
 qemu-img create -f qcow2 $1 8G
 qemu-nbd -c /dev/nbd0 $1
 
-sfdisk /dev/nbd0 -D -uM << EOF > /dev/null
-,512,82
+sfdisk /dev/nbd0  << EOF > /dev/null
+,524288,82
 ;
 EOF
 
@@ -27,5 +27,5 @@ trap cleanup EXIT
 
 
 debootstrap \
-   --include=less,locales-all,vim,sudo,openssh-server,jed,pciutils,bash-completion,psmisc,htop,pydf\
+   --include=less,locales,vim,sudo,openssh-server,jed,pciutils,bash-completion,psmisc,htop,pydf\
     stable mnt
